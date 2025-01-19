@@ -4,7 +4,9 @@ package com.example.sdaassign32022;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.InputType;
@@ -21,7 +23,12 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 
 /*
@@ -44,6 +51,8 @@ public class OrderTshirt extends Fragment {
     private ImageView mCameraImage;
 
     private Boolean mDeliveryOption; //TRUE = delivery, FALSE = collect
+
+    public ImageSave imageUtils = new ImageSave();
 
     //static keys
     private static final int REQUEST_TAKE_PHOTO = 2;
@@ -160,8 +169,10 @@ public class OrderTshirt extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == Activity.RESULT_OK) {
             Bitmap photo = (Bitmap) data.getExtras().get("data");
+
             mCameraImage.setImageBitmap(photo);
 
+            imageUtils.saveImageUsingFilesDir(requireContext(), photo, "assignment3pic.jpg");
         }
     }
 
@@ -206,6 +217,7 @@ public class OrderTshirt extends Fragment {
                 //send email button onClick
                 String CustomerName = mCustomerName.getText().toString();
 
+
                 String mEmailAddress = getString(R.string.to_email);
                 String mEmailSubject = getString(R.string.email_subject);
                 String mEmailBody1 = getString(R.string.order_message_1);
@@ -224,14 +236,16 @@ public class OrderTshirt extends Fragment {
                 }
                 String emailBody = mEmailBody1 + "\n" + "\n" + mEmailBody2 + "\n" + mEmailBody3 + "\n" + "\n"  + mEmailBody4 + "\n" + mEmailBody5;
 
-
+                File photoFile = new File(getContext().getFilesDir(), "assignment3pic.jpg");
+                Uri photoUri = FileProvider.getUriForFile(getContext(), "com.example.sdaassign32022.fileprovider", photoFile);
 
                 Intent emailAppIntent = new Intent(Intent.ACTION_SEND);
-                emailAppIntent.setType("text/plain");
+                emailAppIntent.setType("message/rfc822");
+                emailAppIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 emailAppIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{mEmailAddress});
                 emailAppIntent.putExtra(Intent.EXTRA_SUBJECT, mEmailSubject);
                 emailAppIntent.putExtra(Intent.EXTRA_TEXT,emailBody);
-                //emailAppIntent.putExtra(Intent.EXTRA_STREAM, (Parcelable) mCameraImage);
+                emailAppIntent.putExtra(Intent.EXTRA_STREAM, photoUri);
 
                 startActivity(Intent.createChooser(emailAppIntent, "Send mail"));
 
