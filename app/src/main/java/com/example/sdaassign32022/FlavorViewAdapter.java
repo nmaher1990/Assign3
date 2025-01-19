@@ -104,7 +104,8 @@ public class FlavorViewAdapter extends RecyclerView.Adapter<FlavorViewAdapter.Vi
         }
 
         @Override
-        public void onClick(View v) {
+        public void onClick(View v)
+        {
             listener.onClick(v, getAdapterPosition());
         }
     }
